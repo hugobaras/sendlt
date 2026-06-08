@@ -1,0 +1,25 @@
+# PostgreSQL local pour le développement.
+#   docker compose up -d
+#   ./mvnw spring-boot:run
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sendlt-postgres
+    environment:
+      POSTGRES_DB: sendlt
+      POSTGRES_USER: sendlt
+      POSTGRES_PASSWORD: sendlt
+    ports:
+      - "5433:5432"
+    volumes:
+      - sendlt_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sendlt -d sendlt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  sendlt_pgdata:
