@@ -1,0 +1,3 @@
+UPDATE users
+SET role = 'SETTER_ADMIN'
+WHERE role IN ('SETTER', 'ADMIN');
