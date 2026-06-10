@@ -21,6 +21,11 @@ server:
     include-stacktrace: never
     include-message: always
 
+sendlt:
+  jwt:
+    secret: ${SENDLT_JWT_SECRET:change-me-in-production-use-at-least-32-characters!!}
+    expiration-ms: ${SENDLT_JWT_EXPIRATION_MS:86400000}
+
 logging:
   level:
     org.flywaydb: INFO
