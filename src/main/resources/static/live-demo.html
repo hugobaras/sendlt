@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sendlt live</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    input, textarea { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+    #status { padding: 0.75rem; border-radius: 6px; margin: 1rem 0; background: #f0f0f0; }
+    #log { background: #111; color: #0f0; font-family: monospace; font-size: 12px; padding: 1rem;
+           height: 320px; overflow-y: auto; border-radius: 6px; white-space: pre-wrap; }
+    .ok { background: #d4edda; }
+    .err { background: #f8d7da; }
+  </style>
+</head>
+<body>
+  <h1>Sendlt live (STOMP)</h1>
+  <p>Ouvre deux onglets, colle le JWT, même session id.</p>
+
+  <label>JWT</label>
+  <textarea id="token" rows="3"></textarea>
+
+  <label>Session ID</label>
+  <input id="sessionId" />
+
+  <button id="connectBtn">Connecter &amp; s'abonner</button>
+  <button id="disconnectBtn" disabled>Déconnecter</button>
+
+  <div id="status">Déconnecté</div>
+  <div id="log"></div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    let client = null;
+
+    function log(msg) {
+      const ts = new Date().toISOString().substring(11, 19);
+      logEl.textContent += `[${ts}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(text, ok) {
+      statusEl.textContent = text;
+      statusEl.className = ok ? 'ok' : (ok === false ? 'err' : '');
+    }
+
+    document.getElementById('connectBtn').onclick = () => {
+      const token = document.getElementById('token').value.trim();
+      const sessionId = document.getElementById('sessionId').value.trim();
+      if (!token || !sessionId) {
+        alert('Token et Session ID requis');
+        return;
+      }
+
+      const wsUrl = `${window.location.protocol}//${window.location.host}/ws`;
+      client = new StompJs.Client({
+        webSocketFactory: () => new SockJS(wsUrl),
+        connectHeaders: { Authorization: 'Bearer ' + token },
+        debug: (str) => log('DEBUG: ' + str),
+        onConnect: () => {
+          setStatus('Connecté — abonnement en cours…', true);
+          log('STOMP CONNECT OK');
+          const destination = `/topic/sessions/${sessionId}/activity`;
+          client.subscribe(destination, (message) => {
+            log('EVENT: ' + message.body);
+          });
+          log('SUBSCRIBED: ' + destination);
+          setStatus('Abonné à ' + destination, true);
+          document.getElementById('connectBtn').disabled = true;
+          document.getElementById('disconnectBtn').disabled = false;
+        },
+        onStompError: (frame) => {
+          log('STOMP ERROR: ' + frame.headers['message']);
+          setStatus('Erreur STOMP: ' + (frame.headers['message'] || 'refusé'), false);
+        },
+        onWebSocketClose: () => {
+          log('WebSocket fermé');
+          setStatus('Déconnecté', null);
+          document.getElementById('connectBtn').disabled = false;
+          document.getElementById('disconnectBtn').disabled = true;
+        }
+      });
+
+      client.onWebSocketError = (e) => {
+        log('WebSocket error');
+        setStatus('Erreur WebSocket', false);
+      };
+
+      client.activate();
+      log('Connexion à ' + wsUrl + '…');
+    };
+
+    document.getElementById('disconnectBtn').onclick = () => {
+      if (client) {
+        client.deactivate();
+        client = null;
+      }
+      setStatus('Déconnecté', null);
+      document.getElementById('connectBtn').disabled = false;
+      document.getElementById('disconnectBtn').disabled = true;
+    };
+  </script>
+</body>
+</html>
