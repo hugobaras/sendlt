@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/ws/**", "/ws-native/**").permitAll();
+                    auth.requestMatchers("/live-demo.html").permitAll();
                     auth.requestMatchers("/api/auth/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/api/gyms/**", "/api/sectors/**", "/api/boulders/**")
                             .authenticated();
