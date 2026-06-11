@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -43,6 +44,32 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/gyms/**", "/api/sectors/**", "/api/boulders/**")
+                            .authenticated();
+                    auth.requestMatchers(
+                                    HttpMethod.POST,
+                                    "/api/gyms/**",
+                                    "/api/sectors/**",
+                                    "/api/boulders/**")
+                            .hasRole("SETTER_ADMIN");
+                    auth.requestMatchers(
+                                    HttpMethod.PUT,
+                                    "/api/gyms/**",
+                                    "/api/sectors/**",
+                                    "/api/boulders/**")
+                            .hasRole("SETTER_ADMIN");
+                    auth.requestMatchers(
+                                    HttpMethod.PATCH,
+                                    "/api/gyms/**",
+                                    "/api/sectors/**",
+                                    "/api/boulders/**")
+                            .hasRole("SETTER_ADMIN");
+                    auth.requestMatchers(
+                                    HttpMethod.DELETE,
+                                    "/api/gyms/**",
+                                    "/api/sectors/**",
+                                    "/api/boulders/**")
+                            .hasRole("SETTER_ADMIN");
                     auth.requestMatchers("/api/**").authenticated();
                     auth.anyRequest().permitAll();
                 })
