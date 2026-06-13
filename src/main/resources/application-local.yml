@@ -10,6 +10,15 @@ spring:
       hibernate:
         format_sql: true
 
+sendlt:
+  actuator:
+    secured: false
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
 server:
   error:
     include-stacktrace: on_param
