@@ -1,0 +1,13 @@
+server:
+  error:
+    include-stacktrace: never
+    include-message: always
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+sendlt:
+  actuator:
+    secured: true
