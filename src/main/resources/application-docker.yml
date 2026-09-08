@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    show-sql: false
+
+sendlt:
+  actuator:
+    secured: false
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.sendlt: INFO
+    org.springframework.web: WARN

@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sendlt-postgres
+    environment:
+      POSTGRES_DB: sendlt
+      POSTGRES_USER: sendlt
+      POSTGRES_PASSWORD: sendlt
+    ports:
+      - "5433:5432"
+    volumes:
+      - sendlt_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sendlt -d sendlt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - sendlt
+
+  app:
+    build: .
+    container_name: sendlt-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sendlt
+      SPRING_DATASOURCE_USERNAME: sendlt
+      SPRING_DATASOURCE_PASSWORD: sendlt
+      SENDLT_JWT_SECRET: ${SENDLT_JWT_SECRET:-demo-jwt-secret-at-least-32-characters-long!!}
+      SENDLT_JWT_EXPIRATION_MS: ${SENDLT_JWT_EXPIRATION_MS:-86400000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - sendlt
+
+networks:
+  sendlt:
+    driver: bridge
+
+volumes:
+  sendlt_pgdata:

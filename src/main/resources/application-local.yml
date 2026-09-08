@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/sendlt
+    username: sendlt
+    password: sendlt
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+sendlt:
+  actuator:
+    secured: false
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+server:
+  error:
+    include-stacktrace: on_param
